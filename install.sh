@@ -1,7 +1,10 @@
-#!/bin/bash
 set -e
 
-DEST="$HOME/bin"
+# ── 0. Asegurar que ~/.zshrc exista ─────────────────────────────────
+[ -f "$HOME/.zshrc" ] || { touch "$HOME/.zshrc"; echo "🆕 Creado ~/.zshrc"; }
+
+# ── 1. Descarga del script ──────────────────────────────────────────
+DEST="$HOME/bin"                                            # carpeta destino
 RAW_BASE="https://raw.githubusercontent.com/juliodelfos/pantallazo-cli/master"
 
 echo "📦 Instalando pantallazo-cli en $DEST …"
@@ -11,37 +14,15 @@ curl -fsSL "$RAW_BASE/bin/cap.sh" -o "$DEST/cap.sh"
 chmod +x "$DEST/cap.sh"
 echo "  • cap.sh instalado"
 
-# ── Detectar shell y archivo de configuración ─────────────────────
-SHELL_CONFIG=""
-if [[ "$SHELL" == *"zsh"* ]]; then
-    SHELL_CONFIG="$HOME/.zshrc"
-elif [[ "$SHELL" == *"bash"* ]]; then
-    SHELL_CONFIG="$HOME/.bashrc"
-else
-    # Fallback: intentar detectar por archivos existentes
-    if [[ -f "$HOME/.zshrc" ]]; then
-        SHELL_CONFIG="$HOME/.zshrc"
-    elif [[ -f "$HOME/.bashrc" ]]; then
-        SHELL_CONFIG="$HOME/.bashrc"
-    else
-        SHELL_CONFIG="$HOME/.zshrc"  # Crear zshrc por defecto
-    fi
+# ── 2. Añadir DEST al PATH (solo si falta) ──────────────────────────
+if ! grep -qE "^export PATH=\"$DEST" "$HOME/.zshrc"; then
+  echo -e "\nexport PATH=\"$DEST:\$PATH\"" >> "$HOME/.zshrc"
+  echo "  • PATH actualizado en ~/.zshrc"
 fi
 
-echo "  • Usando archivo de configuración: $SHELL_CONFIG"
-
-# ── Crear archivo de configuración si no existe ───────────────────
-touch "$SHELL_CONFIG"
-
-# ── 1. Añadir DEST al PATH solo una vez ─────────────────────────────
-if ! grep -qE "^export PATH=\"$DEST" "$SHELL_CONFIG" 2>/dev/null; then
-  echo -e "\nexport PATH=\"$DEST:\$PATH\"" >> "$SHELL_CONFIG"
-  echo "  • PATH actualizado en $SHELL_CONFIG"
-fi
-
-# ── 2. Inyectar función + alias si faltan ───────────────────────────
-if ! grep -q "__pantallazo_cli__" "$SHELL_CONFIG" 2>/dev/null; then
-cat >> "$SHELL_CONFIG" <<'EOB'
+# ── 3. Inyectar función + alias (evitar duplicados) ─────────────────
+if ! grep -q "__pantallazo_cli__" "$HOME/.zshrc"; then
+cat >> "$HOME/.zshrc" <<'EOB'
 
 # ── pantallazo-cli  (__pantallazo_cli__) ───────────────────────────
 unalias pantallazo screenshot scrsht 2>/dev/null
@@ -51,9 +32,9 @@ screenshot() { pantallazo "$@"; }
 scrsht()     { pantallazo "$@"; }
 # ───────────────────────────────────────────────────────────────────
 EOB
-  echo "  • Función y alias añadidos a $SHELL_CONFIG"
+  echo "  • Función y alias añadidos a ~/.zshrc"
 else
-  echo "  • Bloque pantallazo-cli ya estaba presente"
+  echo "  • Bloque pantallazo-cli ya estaba presente (no duplicado)"
 fi
 
-echo "✅ Instalación completada. Abre nueva terminal o ejecuta: source $SHELL_CONFIG"
+echo "✅ Instalación completada. Abre nueva terminal o ejecuta: source ~/.zshrc"
