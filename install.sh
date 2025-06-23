@@ -1,31 +1,36 @@
 set -e
-DEST="$HOME/bin"                         # carpeta destino; cámbiala si quieres
-REPO_URL="https://raw.githubusercontent.com/juliodelfos/pantallazo-cli/HEAD"
 
-echo "📦 Instalando pantallazo-cli en $DEST …"
+DEST="${HOME}/bin"                              # carpeta destino
+RAW_BASE="https://raw.githubusercontent.com/juliodelfos/pantallazo-cli/master"
+
+echo "📦 Instalando pantallazo-cli en ${DEST} …"
 mkdir -p "$DEST"
 
-curl -fsSL "$REPO_URL/bin/cap.sh" -o "$DEST/cap.sh"
-chmod +x "$DEST/cap.sh"
+curl -fsSL "${RAW_BASE}/bin/cap.sh" -o "${DEST}/cap.sh"
+chmod +x "${DEST}/cap.sh"
 echo "  • cap.sh instalado"
 
-# Añadir PATH si hace falta
-case ":$PATH:" in
-  *":$DEST:"*) : ;;
-  *)  echo "export PATH=\"$DEST:\$PATH\"" >> "$HOME/.zshrc"
-      echo "➕ Añadido $DEST al PATH (en ~/.zshrc)"
-     ;;
-esac
+# Añadir DEST al PATH si falta
+grep -qxF "export PATH=\"${DEST}:\$PATH\"" "$HOME/.zshrc" || {
+  echo "export PATH=\"${DEST}:\$PATH\"" >> "$HOME/.zshrc"
+  echo "  • PATH actualizado en ~/.zshrc"
+}
 
-# Añadir función + alias si no existen
-grep -q "pantallazo()" "$HOME/.zshrc" || cat >> "$HOME/.zshrc" <<'EOB'
+# Inyectar función + alias solo si no existen
+if ! grep -q "__pantallazo_cli__" "$HOME/.zshrc"; then
+cat >> "$HOME/.zshrc" <<'EOB'
 
-# ── pantallazo-cli ────────────────────────────────────────────────────
+# ── pantallazo-cli  (__pantallazo_cli__) ─────────────────────────────
 unalias pantallazo screenshot scrsht 2>/dev/null
-pantallazo()  { cap.sh "$@"; }
-screenshot()  { pantallazo "$@"; }
-scrsht()      { pantallazo "$@"; }
-# ──────────────────────────────────────────────────────────────────────
-EOB
 
-echo "✅ Instalación completada. Abre una nueva terminal o ejecuta: source ~/.zshrc"
+pantallazo() { ~/bin/cap.sh "\$@"; }
+screenshot() { pantallazo "\$@"; }
+scrsht()     { pantallazo "\$@"; }
+# ────────────────────────────────────────────────────────────────────
+EOB
+  echo "  • Función y alias añadidos a ~/.zshrc"
+else
+  echo "  • Bloque pantallazo-cli ya estaba en ~/.zshrc (no duplicado)"
+fi
+
+echo "✅ Instalación completada. Abre nuevo terminal o ejecuta: source ~/.zshrc"
