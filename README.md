@@ -18,7 +18,7 @@ Script de línea de comandos para **capturas de pantalla avanzadas** en macOS.
 ## Instalación rápida
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/juliodelfos/pantallazo-cli/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/juliodelfos/pantallazo-cli/HEAD/install.sh)
 ```
 
 El instalador:
