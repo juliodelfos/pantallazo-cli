@@ -1,6 +1,6 @@
 set -e
 DEST="$HOME/bin"                         # carpeta destino; cámbiala si quieres
-REPO_URL="https://raw.githubusercontent.com/USUARIO/pantallazo-cli/main"
+REPO_URL="https://raw.githubusercontent.com/juliodelfos/pantallazo-cli/HEAD"
 
 echo "📦 Instalando pantallazo-cli en $DEST …"
 mkdir -p "$DEST"
